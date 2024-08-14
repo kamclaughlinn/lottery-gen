@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lottery Number Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input, button {
+            padding: 10px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+        }
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Lottery Number Generator</h1>
+    <div class="form-group">
+        <button onclick="generateRandomTicket()">Generate Random Ticket</button>
+    </div>
+    <div class="form-group">
+        <label for="playerName">Enter Player Name:</label>
+        <input type="text" id="playerName" placeholder="Enter your name">
+        <button onclick="generateTicketBasedOnName()">Generate Ticket Based on Name</button>
+    </div>
+    <div class="result" id="result"></div>
+    <div class="error" id="error"></div>
+</div>
+
+<script>
+    async function generateRandomTicket() {
+        try {
+            const response = await fetch('/api/lottery/random');
+            if (!response.ok) throw new Error('Network response was not ok');
+            const data = await response.json();
+            displayResult(`Random Ticket Numbers: ${Array.from(data.numbers).join(', ')} | Bonus Number: ${data.bonusNumber}`);
+            clearError();
+        } catch (error) {
+            displayError('Failed to generate random ticket. Please try again.');
+        }
+    }
+
+    async function generateTicketBasedOnName() {
+        const playerName = document.getElementById('playerName').value;
+        if (playerName.length < 2 || playerName.length > 50) {
+            displayError('Player name must be between 2 and 50 characters.');
+            return;
+        }
+        try {
+            const response = await fetch(`/api/lottery/name-based?playerName=${encodeURIComponent(playerName)}`);
+            if (!response.ok) throw new Error('Network response was not ok');
+            const data = await response.json();
+            displayResult(`Name-Based Ticket Numbers: ${Array.from(data.numbers).join(', ')} | Bonus Number: ${data.bonusNumber}`);
+            clearError();
+        } catch (error) {
+            displayError('Failed to generate ticket based on name. Please ensure your name is valid and try again.');
+        }
+    }
+
+    function displayResult(message) {
+        document.getElementById('result').textContent = message;
+    }
+
+    function displayError(message) {
+        document.getElementById('error').textContent = message;
+    }
+
+    function clearError() {
+        document.getElementById('error').textContent = '';
+    }
+</script>
+</body>
+</html>
